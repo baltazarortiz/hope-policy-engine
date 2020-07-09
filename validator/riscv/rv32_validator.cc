@@ -105,6 +105,7 @@ void rv32_validator_base_t::setup_validation() {
 }
 
 rv32_validator_t::rv32_validator_t(meta_set_cache_t *ms_cache,
+				   metadata_factory_t *md_factory,
 				   meta_set_factory_t *ms_factory,
 				   soc_tag_configuration_t *config,
 				   RegisterReader_t rr, AddressFixer_t af) :
@@ -115,6 +116,8 @@ rv32_validator_t::rv32_validator_t(meta_set_cache_t *ms_cache,
   res->csrResult = true;
 
   meta_set_t const *ms;
+
+  this->md_factory = md_factory;
 
   ms = ms_factory->get_meta_set("ISA.RISCV.Reg.Default");
   ireg_tags.reset(m_to_t(ms));
@@ -304,6 +307,10 @@ void rv32_validator_t::prepare_eval(address_t pc, insn_bits_t insn) {
 
   int32_t flags;
 
+  const metadata_t *opgroup_metadata;
+  meta_set_t opgroup_ms;
+  meta_set_t ci_ms;
+
   failed = false;
   
   memset(ctx, 0, sizeof(*ctx));
@@ -386,7 +393,20 @@ void rv32_validator_t::prepare_eval(address_t pc, insn_bits_t insn) {
 
 //  temp_ci_tag = *t_to_m(ci_tag);
 //  ops->ci = &temp_ci_tag;
+
+  opgroup_metadata = md_factory->lookup_group_metadata(name, flags, rs1, rs2, rs3, pending_RD, imm);
+  memset(&opgroup_ms, 0, sizeof(opgroup_ms));
+  
+  for (auto it = opgroup_metadata->begin(); it != opgroup_metadata->end(); ++it) {
+    ms_bit_add(&opgroup_ms, *it);
+  }
+
   ops->ci = t_to_m(ci_tag);
+  memcpy(&ci_ms, ops->ci, sizeof(meta_set_t));
+  ms_union(&ci_ms, &opgroup_ms);
+
+  ops->ci = ms_cache->canonize(ci_ms);
+
 //  meta_set_to_string(ops->ci, tag_name, sizeof(tag_name));
 //  printf("ci tag name before merge: %s\n", tag_name);
   ops->pc = t_to_m(pc_tag);
