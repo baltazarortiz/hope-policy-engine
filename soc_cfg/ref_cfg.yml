@@ -1,7 +1,37 @@
 SOC:
+  DEBUG: {
+    name: SOC.IO.Debug,
+    start: 0x0,
+    end:   0xfff,
+    heterogeneous: true
+    }
+  MMIO: {
+    name: SOC.IO.GPIO_0,
+    start: 0x1000,
+    end:   0x9fff,
+    heterogeneous: true
+    }
+  ROM: {
+    name: SOC.Flash_0,
+    start: 0x10000,
+    end:   0x1ffff,
+    heterogeneous: true
+    }
+  CONTROLLERS: {
+    name: SOC.IO.TEST,
+    start: 0x20000,
+    end:   0x53FFFFFF,
+    heterogeneous: true
+    }
+  UART0: {
+    name: SOC.IO.UART_0,
+    start: 0x54000000,
+    end:   0x54000fff,
+    heterogeneous: true
+    }
   RAM: {
     name: SOC.Memory.Ram_0,
-    start: 0x80000000,
-    end:   0x8fffffff,
+    start: 0x60000000,
+    end:   0x7fffffff,
     heterogeneous: true
     }
